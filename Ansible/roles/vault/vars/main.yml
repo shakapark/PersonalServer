@@ -1,0 +1,13 @@
+apt:
+  download_url: apt.releases.hashicorp.com
+  keyring_file: /etc/apt/trusted.gpg.d/vault.gpg
+
+docker:
+  vault_image: hashicorp/vault
+  vault_version: 1.15.0
+  network_name: docker-network
+
+vault_folder: "{{ ansible_user_dir }}/vault"
+config_file: "{{ vault_folder }}/config.json"
+database_folder: "{{ vault_folder }}/database"
+

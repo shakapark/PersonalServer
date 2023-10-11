@@ -1,0 +1,36 @@
+---
+- name: Setup Server
+  hosts: all
+  tasks:
+
+    # - name: Print all available facts
+    #   ansible.builtin.debug:
+    #     var: ansible_facts
+
+    # - ansible.builtin.pause:
+    #     prompt: Debug
+
+    - name: Install Prerequisites
+      ansible.builtin.import_role:
+        name: prerequisites
+      tags: always
+
+    # - name: Setup Bluray
+    #   ansible.builtin.import_role:
+    #     name: bluray
+    #   tags: bluray
+
+    - name: Setup Vault
+      ansible.builtin.import_role:
+        name: vault
+      tags: vault
+
+    - name: Setup Nginx
+      ansible.builtin.import_role:
+        name: nginx
+      tags: nginx
+
+    # - name: Setup Minio
+      # ansible.builtin.import_role:
+      #   name: minio
+    #   tags: minio

@@ -1,0 +1,8 @@
+nginx_folder: "{{ ansible_user_dir }}/nginx"
+nginx_tls_folder: "{{ nginx_folder }}/tls"
+config_file: "{{ nginx_folder }}/nginx.conf"
+
+docker:
+  nginx_image: nginx
+  nginx_version: 1.25.2
+  network_name: docker-network

@@ -1,0 +1,4 @@
+docker:
+  installed_file: /var/lib/docker/INSTALLED
+  apt_keyring_file: /etc/apt/trusted.gpg.d/docker.gpg
+  download_url: download.docker.com

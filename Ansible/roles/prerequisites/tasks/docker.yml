@@ -1,0 +1,69 @@
+- name: Check if Docker is installed
+  become: true
+  stat:
+    path: "{{ docker.installed_file }}"
+  register: docker_install
+
+- become: true
+  when: not docker_install.stat.exists
+  block:
+    - name: Uninstall old install
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+
+    - name: Install Docker prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+
+    - name: Add an Docker Apt signing key
+      ansible.builtin.apt_key:
+        url: "https://{{ docker.download_url }}/{{ ansible_facts['system'] | lower }}/{{ ansible_facts['distribution'] | lower }}/gpg"
+        keyring: "{{ docker.apt_keyring_file }}"
+        state: present
+
+    - name: Add an Docker Apt repository
+      ansible.builtin.apt_repository:
+        filename: docker
+        repo: "deb [arch=amd64 signed-by={{ docker.apt_keyring_file }}] https://{{ docker.download_url }}/{{ ansible_facts['system'] | lower }}/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }} stable"
+        update_cache: true
+        state: present
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - ansible.builtin.file:
+        path: "{{ docker.installed_file }}"
+        state: touch
+
+- name: Configure Docker
+  become: true
+  ansible.builtin.copy:
+  # ansible.builtin.template:
+    src: docker.conf
+    dest: "/etc/docker/daemon.json"
+  register: docker_config
+
+- name: Restart Docker
+  become: true
+  ansible.builtin.systemd_service:
+    name: docker
+    daemon_reload: true
+    state: restarted
+  when: docker_config.changed

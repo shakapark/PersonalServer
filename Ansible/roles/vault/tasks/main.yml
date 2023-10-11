@@ -1,0 +1,70 @@
+- name: Create Vault Folder
+  ansible.builtin.file:
+    path: "{{ database_folder }}"
+    state: directory
+
+- name: Create Vault Database Folder
+  ansible.builtin.file:
+    path: "{{ database_folder }}"
+    state: directory
+
+- name: Copy Vault Config to host
+  ansible.builtin.copy:
+    src: vault-config.json
+    dest: "{{ config_file }}"
+  register: vault_config_status
+
+- name: Install Vault Client
+  become: true
+  block:
+    - name: Add Hashicorp Apt signing key
+      ansible.builtin.apt_key:
+        url: "https://{{ apt.download_url }}/gpg"
+        keyring: "{{ apt.keyring_file }}"
+        state: present
+
+    - name: Add Hashicorp Apt repository
+      ansible.builtin.apt_repository:
+        filename: hashicorp
+        repo: "deb [arch=amd64 signed-by={{ apt.keyring_file }}] https://{{ apt.download_url }} {{ ansible_facts['distribution_release'] }} main"
+        update_cache: true
+        state: present
+
+    - name: Install Vault Client
+      ansible.builtin.apt:
+        name: vault
+        state: present
+
+- name: Docker Tasks
+  become: true
+  block:
+    - name: Launch Vault Server
+      community.docker.docker_container:
+        # https://docs.ansible.com/ansible/latest/collections/community/docker/docker_container_module.html
+        name: vault
+        image: "{{ docker.vault_image }}:{{ docker.vault_version }}"
+        capabilities:
+          - IPC_LOCK
+        command:
+          - vault
+          - server
+          - -config=/vault/config/vault-config.json
+        published_ports:
+          - 127.0.0.1:8200:8200
+        networks:
+          - name: "{{ docker.network_name }}"
+            aliases: vault
+        # healthcheck:
+        volumes:
+          - "{{ database_folder }}:/vault/file/:rw"
+          - "{{ config_file }}:/vault/config/vault-config.json:ro"
+        restart_policy: unless-stopped
+        restart: "{% if vault_config_status.changed %}true{% else %}false{% endif %}"
+        state: started
+      register: vault_status
+
+- ansible.builtin.pause:
+    prompt: You need to initiate are unsealled the vault server !!
+  when: vault_status is changed
+
+# https://hub.docker.com/r/hashicorp/vault
