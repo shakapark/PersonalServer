@@ -22,5 +22,4 @@
       com.docker.network.bridge.enable_icc: true
       com.docker.network.bridge.enable_ip_masquerade: true
       com.docker.network.bridge.host_binding_ipv4: 0.0.0.0
-      # com.docker.network.bridge.name: docker1
       com.docker.network.bridge.mtu: 1500

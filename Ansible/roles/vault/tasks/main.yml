@@ -58,7 +58,7 @@
         volumes:
           - "{{ database_folder }}:/vault/file/:rw"
           - "{{ config_file }}:/vault/config/vault-config.json:ro"
-        restart_policy: unless-stopped
+        restart_policy: always
         restart: "{% if vault_config_status.changed %}true{% else %}false{% endif %}"
         state: started
       register: vault_status

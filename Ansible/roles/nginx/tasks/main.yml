@@ -34,6 +34,6 @@
         volumes:
           - "{{ config_file }}:/etc/nginx/nginx.conf:ro"
           - "{{ nginx_tls_folder }}:/etc/nginx/tls:ro"
-        restart_policy: unless-stopped
+        restart_policy: always
         restart: "{% if nginx_config_status.changed %}true{% else %}false{% endif %}"
         state: started
